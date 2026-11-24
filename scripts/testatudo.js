@@ -1,6 +1,6 @@
 // Certifique-se de que o servidor (npm run dev) está rodando antes de executar: node test-routes.js
 
-const BASE_URL = 'http://localhost:3000/api';
+const BASE_URL = 'https://petperto.vercel.app/api';
 
 async function runTests() {
   console.log('🧪 Iniciando testes da API do PetPerto...\n');
