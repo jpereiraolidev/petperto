@@ -33,7 +33,18 @@ export async function register(req, res) {
       },
     });
 
-    return res.status(201).json(user);
+    // Gera o token JWT automaticamente após o cadastro
+    const token = jwt.sign(
+      { id: user.id, tipoPerfil: user.tipoPerfil },
+      JWT_SECRET,
+      { expiresIn: '7d' }
+    );
+
+    // Retorna no mesmo formato do login ({ user, token })
+    return res.status(201).json({
+      user,
+      token,
+    });
   } catch (error) {
     return res.status(500).json({ error: 'Erro ao registrar usuário.' });
   }

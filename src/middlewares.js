@@ -9,12 +9,21 @@ export function authMiddleware(req, res, next) {
     return res.status(401).json({ error: 'Token não fornecido.' });
   }
 
-  const [, token] = authHeader.split(' ');
+  const parts = authHeader.split(' ');
+
+  if (parts.length !== 2 || parts[0] !== 'Bearer') {
+    return res.status(401).json({ error: 'Token mal formatado.' });
+  }
+
+  const [, token] = parts;
 
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
+    
     req.userId = decoded.id;
     req.userRole = decoded.tipoPerfil;
+    req.user = { id: decoded.id, tipoPerfil: decoded.tipoPerfil };
+    
     return next();
   } catch (error) {
     return res.status(401).json({ error: 'Token inválido ou expirado.' });
