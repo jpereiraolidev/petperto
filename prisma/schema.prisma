@@ -1,0 +1,144 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---------------------------------------------------------
+// ENUMS
+// ---------------------------------------------------------
+
+enum Role {
+  ADOTANTE
+  PROTETOR
+  ONG
+  ADMIN
+}
+
+enum Especie {
+  CAO
+  GATO
+  OUTRO
+}
+
+enum Porte {
+  PEQUENO
+  MEDIO
+  GRANDE
+}
+
+enum Sexo {
+  MACHO
+  FEMEA
+}
+
+enum PetStatus {
+  DISPONIVEL
+  EM_PROCESSO
+  ADOTADO
+  INATIVO
+}
+
+enum AdoptionStatus {
+  PENDENTE
+  EM_ANALISE
+  APROVADA
+  RECUSADA
+  CANCELADA
+}
+
+// ---------------------------------------------------------
+// MODELS
+// ---------------------------------------------------------
+
+model User {
+  id               String          @id @default(uuid())
+  nome             String
+  email            String          @unique
+  senhaHash        String          @map("senha_hash")
+  telefone         String?
+  tipoPerfil       Role            @default(ADOTANTE) @map("tipo_perfil")
+  cidade           String?
+  estado           String?
+  avatarUrl        String?         @map("avatar_url")
+  verificado       Boolean         @default(false)
+  createdAt        DateTime        @default(now()) @map("created_at")
+  updatedAt        DateTime        @updatedAt @map("updated_at")
+
+  // Relações
+  pets             Pet[]           @relation("TutorPets")
+  solicitacoes     AdoptionRequest[]
+  mensagens        Message[]
+
+  @@map("users")
+}
+
+model Pet {
+  id                  String            @id @default(uuid())
+  nome                String
+  especie             Especie
+  raca                String?
+  idadeEstimada       String?           @map("idade_estimada") // Ex: "2 anos", "6 meses"
+  porte               Porte
+  sexo                Sexo
+  castrado            Boolean           @default(false)
+  vacinado            Boolean           @default(false)
+  vermifugado         Boolean           @default(false)
+  descricaoTemperamento String?         @map("descricao_temperamento")
+  necessidadesEspeciais String?         @map("necessidades_especiais")
+  fotos               String[]          // Array de URLs de imagens
+  status              PetStatus         @default(DISPONIVEL)
+  
+  tutorId             String            @map("tutor_id")
+  tutor               User              @relation("TutorPets", fields: [tutorId], references: [id], onDelete: Cascade)
+
+  createdAt           DateTime          @default(now()) @map("created_at")
+  updatedAt           DateTime          @updatedAt @map("updated_at")
+
+  // Relações
+  solicitacoes        AdoptionRequest[]
+
+  @@map("pets")
+}
+
+model AdoptionRequest {
+  id                 String            @id @default(uuid())
+  status             AdoptionStatus    @default(PENDENTE)
+  formularioRespostas Json             @map("formulario_respostas") // Armazena as respostas do questionário em JSON
+  
+  petId              String            @map("pet_id")
+  pet                Pet               @relation(fields: [petId], references: [id], onDelete: Cascade)
+
+  adotanteId         String            @map("adotante_id")
+  adotante           User              @relation(fields: [adotanteId], references: [id], onDelete: Cascade)
+
+  createdAt          DateTime          @default(now()) @map("created_at")
+  updatedAt          DateTime          @updatedAt @map("updated_at")
+
+  // Relações
+  mensagens          Message[]
+
+  @@map("adoption_requests")
+}
+
+model Message {
+  id                String          @id @default(uuid())
+  conteudo          String
+  lida              Boolean         @default(false)
+
+  adoptionRequestId String          @map("adoption_request_id")
+  adoptionRequest   AdoptionRequest @relation(fields: [adoptionRequestId], references: [id], onDelete: Cascade)
+
+  remetenteId       String          @map("remetente_id")
+  remetente         User            @relation(fields: [remetenteId], references: [id], onDelete: Cascade)
+
+  createdAt         DateTime        @default(now()) @map("created_at")
+
+  @@map("messages")
+}
