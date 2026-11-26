@@ -6,7 +6,7 @@ const app = express();
 
 // Lista de origens permitidas (URLs do seu front-end em produção e desenvolvimento)
 const allowedOrigins = [
-  'https://petperto.adote.vercel.app',
+  'https://petpertoadote.vercel.app/',
   'http://localhost:3000',
   'http://127.0.0.1:5500'
 ];
